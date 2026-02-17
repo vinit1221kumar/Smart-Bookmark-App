@@ -1,8 +1,9 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, createTypedClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { Database } from '@/types/database'
 
 // Validation schemas
 const bookmarkSchema = z.object({
@@ -15,7 +16,7 @@ const bookmarkSchema = z.object({
 
 // Add a new bookmark
 export async function addBookmark(formData: FormData) {
-  const supabase = (await createServerClient()) as any
+  const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -31,16 +32,17 @@ export async function addBookmark(formData: FormData) {
     return { error: validation.error.errors[0].message }
   }
 
-  // Insert bookmark
+  // Create strongly-typed bookmark object
+  const bookmarkData: Database['public']['Tables']['bookmarks']['Insert'] = {
+    user_id: user.id,
+    title: validation.data.title,
+    url: validation.data.url,
+  }
+
+  // Insert bookmark using properly typed client
   const { data, error } = await supabase
     .from('bookmarks')
-    .insert([
-      {
-        user_id: user.id,
-        title: validation.data.title,
-        url: validation.data.url,
-      },
-    ])
+    .insert(bookmarkData as any)
     .select()
     .single()
 
@@ -55,7 +57,7 @@ export async function addBookmark(formData: FormData) {
 
 // Delete a bookmark
 export async function deleteBookmark(bookmarkId: string) {
-  const supabase = (await createServerClient()) as any
+  const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -80,7 +82,7 @@ export async function deleteBookmark(bookmarkId: string) {
 
 // Increment open counter
 export async function incrementOpens(bookmarkId: string) {
-  const supabase = (await createServerClient()) as any
+  const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -88,9 +90,9 @@ export async function incrementOpens(bookmarkId: string) {
   }
 
   // Increment opens counter
-  const { error } = await supabase.rpc('increment_opens', {
+  const { error } = await supabase.rpc('increment_opens' as any, {
     bookmark_id: bookmarkId,
-  })
+  } as any)
 
   if (error) {
     console.error('Error incrementing opens:', error)
@@ -103,7 +105,7 @@ export async function incrementOpens(bookmarkId: string) {
 
 // Sign out
 export async function signOut() {
-  const supabase = (await createServerClient()) as any
+  const supabase = await createServerClient()
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
 }

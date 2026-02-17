@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Input from '@/components/ui/Input';
 import { SearchIcon } from '@/components/icons';
-import { motion } from 'framer-motion';
 
 const BookmarkSearch = ({ onSearch, placeholder = 'Search bookmarks...' }) => {
   const [query, setQuery] = useState('');
@@ -17,10 +16,7 @@ const BookmarkSearch = ({ onSearch, placeholder = 'Search bookmarks...' }) => {
   }, [query, onSearch]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, delay: 0.1 }}
+    <div
       className="mb-6"
     >
       <div className="relative">
@@ -36,7 +32,7 @@ const BookmarkSearch = ({ onSearch, placeholder = 'Search bookmarks...' }) => {
           className="pl-10"
         />
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -8,7 +8,6 @@ import { extractFaviconUrl } from '@/lib/utils/favicon';
 import { normalizeUrl, validateBookmark } from '@/lib/utils/validators';
 import { useToast } from '@/lib/contexts/ToastContext';
 import { MESSAGES } from '@/lib/constants/messages';
-import { motion } from 'framer-motion';
 
 const AddBookmarkForm = ({ onAdd, loading = false }) => {
   const [title, setTitle] = useState('');
@@ -57,11 +56,7 @@ const AddBookmarkForm = ({ onAdd, loading = false }) => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div>
       <Card className="p-6 mb-8">
         <h2 className="text-lg font-semibold mb-4">Add New Bookmark</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,7 +97,7 @@ const AddBookmarkForm = ({ onAdd, loading = false }) => {
           💡 Tip: Press Ctrl+N to quickly add a bookmark
         </p>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 

@@ -47,7 +47,11 @@ export const ThemeProvider = ({ children }) => {
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
+    // Return a default context for SSR/build time
+    return {
+      theme: 'light',
+      toggleTheme: () => {},
+    };
   }
   return context;
 };

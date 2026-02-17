@@ -55,8 +55,19 @@ export const ToastProvider = ({ children }) => {
 
 export const useToast = () => {
   const context = useContext(ToastContext);
+  
+  // Fallback if not in provider
   if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
+    return {
+      toasts: [],
+      addToast: () => {},
+      removeToast: () => {},
+      showSuccess: () => {},
+      showError: () => console.error,
+      showInfo: () => {},
+      showWarning: () => {},
+    };
   }
+  
   return context;
 };

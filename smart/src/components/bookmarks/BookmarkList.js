@@ -2,32 +2,8 @@
 
 import BookmarkCard from '@/components/bookmarks/BookmarkCard';
 import { BookmarkCardSkeleton } from '@/components/ui/Skeleton';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const BookmarkList = ({ bookmarks, loading, onDelete, onOpen }) => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.2 },
-    },
-    exit: {
-      opacity: 0,
-      y: -10,
-      transition: { duration: 0.2 },
-    },
-  };
 
   if (loading) {
     return (
@@ -44,24 +20,21 @@ const BookmarkList = ({ bookmarks, loading, onDelete, onOpen }) => {
   }
 
   return (
-    <motion.div
+    <div
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
     >
-      <AnimatePresence mode="popLayout">
+      <div>
         {bookmarks.map((bookmark) => (
-          <motion.div key={bookmark.id} variants={itemVariants} layout>
+          <div key={bookmark.id}>
             <BookmarkCard
               bookmark={bookmark}
               onDelete={onDelete}
               onOpen={onOpen}
             />
-          </motion.div>
+          </div>
         ))}
-      </AnimatePresence>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 

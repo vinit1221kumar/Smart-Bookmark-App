@@ -17,36 +17,43 @@ export const AuthProvider = ({ children }) => {
         const client = createClient();
         setSupabase(client);
         
+        // Set up auth state listener FIRST
         const {
-          data: { session },
+          data: { subscription },
+        } = client.auth.onAuthStateChange((_event, session) => {
+          console.log('Auth state changed:', { event: _event, hasSession: !!session });
+          setSession(session);
+          setUser(session?.user || null);
+          setLoading(false);
+        });
+
+        // Then fetch initial session
+        const {
+          data: { session: initialSession },
         } = await client.auth.getSession();
-        setSession(session);
-        setUser(session?.user || null);
+        
+        if (initialSession) {
+          setSession(initialSession);
+          setUser(initialSession.user || null);
+        }
+        
+        setLoading(false);
+
+        return () => subscription?.unsubscribe();
       } catch (error) {
         console.error('Error initializing auth:', error);
         setSession(null);
         setUser(null);
-      } finally {
         setLoading(false);
       }
     };
 
-    initializeAuth();
+    const cleanup = initializeAuth();
+    return () => {
+      cleanup?.then((unsub) => unsub?.());
+    };
   }, []);
 
-  useEffect(() => {
-    if (!supabase) return;
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user || null);
-      setLoading(false);
-    });
-
-    return () => subscription?.unsubscribe();
-  }, [supabase]);
 
   return (
     <AuthContext.Provider value={{ session, user, loading, supabase }}>

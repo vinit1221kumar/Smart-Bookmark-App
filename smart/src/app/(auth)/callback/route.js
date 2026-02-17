@@ -10,8 +10,18 @@ export async function GET(request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      // Verify session was created
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      
+      if (session) {
+        // Redirect to dashboard - the middleware will allow this
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      }
     }
+
+    console.error('Callback error:', error);
   }
 
   // Return error page

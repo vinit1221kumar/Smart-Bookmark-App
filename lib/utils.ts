@@ -1,9 +1,3 @@
-import { type ClassValue, clsx } from 'clsx'
-
-export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs)
-}
-
 // Extract domain from URL
 export function extractDomain(url: string): string {
   try {

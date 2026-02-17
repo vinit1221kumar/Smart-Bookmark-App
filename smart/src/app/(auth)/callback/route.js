@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -17,24 +17,50 @@ export async function GET(request) {
 
   if (code) {
     try {
-      const supabase = await createClient();
+      // Create response object to capture cookies
+      let response = NextResponse.redirect(new URL('/dashboard', request.url));
+
+      // Create Supabase client with request/response cookie API (like middleware)
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                response.cookies.set(name, value, options);
+              });
+            },
+          },
+        }
+      );
+
       console.log('[Callback] Exchanging code for session...');
       
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
       if (!exchangeError) {
-        // Verify session was created
+        console.log('[Callback] ✓ Code exchanged successfully');
+        
+        // Verify session
         const {
           data: { session },
         } = await supabase.auth.getSession();
         
-        console.log('[Callback] Session verification:', { hasSession: !!session, userEmail: session?.user?.email });
+        console.log('[Callback] Session verification:', { 
+          hasSession: !!session, 
+          userEmail: session?.user?.email 
+        });
         
         if (session) {
-          console.log('[Callback] ✓ Session created, redirecting to /dashboard');
-          return NextResponse.redirect(new URL('/dashboard', request.url));
+          console.log('[Callback] ✓ Session verified, redirecting to /dashboard with cookies set');
+          // Return response with cookies set
+          return response;
         } else {
-          console.error('[Callback] Session was not created after exchange');
+          console.error('[Callback] Session verification failed');
         }
       } else {
         console.error('[Callback] Exchange error:', exchangeError);
@@ -47,7 +73,7 @@ export async function GET(request) {
   }
 
   // Return error page
-  console.log('[Callback] Redirecting to login with error');
+  console.log('[Callback] ✗ Callback failed, redirecting to login');
   return NextResponse.redirect(
     new URL('/login?error=auth_failed', request.url)
   );

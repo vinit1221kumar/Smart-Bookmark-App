@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@supabase/ssr';
 
 const AuthContext = createContext();
 
@@ -15,10 +15,16 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       try {
         console.log('[AuthContext] Initializing...');
-        const client = createClient();
+        
+        // Create browser client - this handles cookie reading via @supabase/ssr
+        const client = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        );
+        
         setSupabase(client);
         
-        // Set up auth state listener FIRST
+        // Set up auth state listener FIRST - this will catch any session changes
         const {
           data: { subscription },
         } = client.auth.onAuthStateChange((_event, session) => {
@@ -32,11 +38,16 @@ export const AuthProvider = ({ children }) => {
           setLoading(false);
         });
 
-        // Then fetch initial session
-        console.log('[AuthContext] Fetching initial session...');
+        // Then fetch initial session - this reads from cookies set by server
+        console.log('[AuthContext] Fetching initial session from cookies...');
         const {
           data: { session: initialSession },
+          error: sessionError,
         } = await client.auth.getSession();
+        
+        if (sessionError) {
+          console.error('[AuthContext] Error fetching session:', sessionError);
+        }
         
         console.log('[AuthContext] Initial session result:', { 
           hasSession: !!initialSession,
@@ -46,6 +57,9 @@ export const AuthProvider = ({ children }) => {
         if (initialSession) {
           setSession(initialSession);
           setUser(initialSession.user || null);
+          console.log('[AuthContext] ✓ Session restored from cookies');
+        } else {
+          console.log('[AuthContext] No session found in cookies');
         }
         
         setLoading(false);

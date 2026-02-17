@@ -23,11 +23,6 @@ export async function updateSession(request: NextRequest) {
             value,
             ...options,
           })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
           response.cookies.set({
             name,
             value,
@@ -40,11 +35,6 @@ export async function updateSession(request: NextRequest) {
             value: '',
             ...options,
           })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
           response.cookies.set({
             name,
             value: '',
@@ -55,6 +45,7 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // Refresh session if token exists
   await supabase.auth.getUser()
 
   return response

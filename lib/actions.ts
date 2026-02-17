@@ -15,7 +15,7 @@ const bookmarkSchema = z.object({
 
 // Add a new bookmark
 export async function addBookmark(formData: FormData) {
-  const supabase = await createServerClient()
+  const supabase = (await createServerClient()) as any
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -34,11 +34,13 @@ export async function addBookmark(formData: FormData) {
   // Insert bookmark
   const { data, error } = await supabase
     .from('bookmarks')
-    .insert({
-      user_id: user.id,
-      title: validation.data.title,
-      url: validation.data.url,
-    })
+    .insert([
+      {
+        user_id: user.id,
+        title: validation.data.title,
+        url: validation.data.url,
+      },
+    ])
     .select()
     .single()
 
@@ -53,7 +55,7 @@ export async function addBookmark(formData: FormData) {
 
 // Delete a bookmark
 export async function deleteBookmark(bookmarkId: string) {
-  const supabase = await createServerClient()
+  const supabase = (await createServerClient()) as any
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -78,7 +80,7 @@ export async function deleteBookmark(bookmarkId: string) {
 
 // Increment open counter
 export async function incrementOpens(bookmarkId: string) {
-  const supabase = await createServerClient()
+  const supabase = (await createServerClient()) as any
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -101,7 +103,7 @@ export async function incrementOpens(bookmarkId: string) {
 
 // Sign out
 export async function signOut() {
-  const supabase = await createServerClient()
+  const supabase = (await createServerClient()) as any
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
 }

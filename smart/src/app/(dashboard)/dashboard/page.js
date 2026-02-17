@@ -10,6 +10,8 @@ import EmptyState from '@/components/bookmarks/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import useBookmarks from '@/lib/hooks/useBookmarks';
 
+export const dynamic = 'force-dynamic';
+
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const { bookmarks, loading, addBookmark, deleteBookmark, incrementOpenCount } =

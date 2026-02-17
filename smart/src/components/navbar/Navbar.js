@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import { MoonIcon, SunIcon, LogOutIcon, BookmarkIcon } from '@/components/icons';

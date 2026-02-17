@@ -1,4 +1,4 @@
-import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 export const createClient = async () => {
@@ -10,7 +10,7 @@ export const createClient = async () => {
     {
       cookies: {
         getAll() {
-          return parseCookieHeader(cookieStore.getSetCookie().join(';'));
+          return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
           try {

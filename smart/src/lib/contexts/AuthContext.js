@@ -9,24 +9,33 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const [supabase, setSupabase] = useState(null);
 
   useEffect(() => {
-    const getSession = async () => {
+    const initializeAuth = async () => {
       try {
+        const client = createClient();
+        setSupabase(client);
+        
         const {
           data: { session },
-        } = await supabase.auth.getSession();
+        } = await client.auth.getSession();
         setSession(session);
         setUser(session?.user || null);
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error('Error initializing auth:', error);
+        setSession(null);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    getSession();
+    initializeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
 
     const {
       data: { subscription },

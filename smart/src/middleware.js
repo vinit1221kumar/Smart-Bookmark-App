@@ -1,4 +1,4 @@
-import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 
 const PROTECTED_ROUTES = ['/dashboard'];
@@ -17,7 +17,7 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  const response = NextResponse.next({
+  let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
@@ -29,7 +29,7 @@ export async function middleware(request) {
     {
       cookies: {
         getAll() {
-          return parseCookieHeader(request.headers.get('cookie') ?? '');
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {

@@ -1,19 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { GoogleIcon, BookmarkIcon } from '@/components/icons';
 import { useToast } from '@/lib/contexts/ToastContext';
-import { motion } from 'framer-motion';
+
+export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
-  const supabase = createClient();
+  const [supabase, setSupabase] = useState(null);
   const { showError } = useToast();
 
+  useEffect(() => {
+    try {
+      const client = createClient();
+      setSupabase(client);
+    } catch (err) {
+      console.error('Error initializing Supabase:', err);
+    }
+  }, []);
+
   const handleGoogleSignIn = async () => {
+    if (!supabase) {
+      showError('Supabase client not initialized');
+      return;
+    }
+
     try {
       setLoading(true);
       const { error } = await supabase.auth.signInWithOAuth({
@@ -35,11 +50,7 @@ export default function LoginPage() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+    <div>
       <Card className="p-8">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
@@ -58,7 +69,7 @@ export default function LoginPage() {
         {/* Google Sign In Button */}
         <Button
           onClick={handleGoogleSignIn}
-          disabled={loading}
+          disabled={loading || !supabase}
           className="w-full flex items-center justify-center gap-3"
           variant="primary"
         >
@@ -99,6 +110,6 @@ export default function LoginPage() {
           Your bookmarks are stored securely and visible only to you.
         </p>
       </Card>
-    </motion.div>
+    </div>
   );
 }

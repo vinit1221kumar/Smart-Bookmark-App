@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        console.log('[AuthContext] Initializing...');
         const client = createClient();
         setSupabase(client);
         
@@ -21,16 +22,26 @@ export const AuthProvider = ({ children }) => {
         const {
           data: { subscription },
         } = client.auth.onAuthStateChange((_event, session) => {
-          console.log('Auth state changed:', { event: _event, hasSession: !!session });
+          console.log('[AuthContext] Auth state changed:', { 
+            event: _event, 
+            hasSession: !!session,
+            userEmail: session?.user?.email || 'none'
+          });
           setSession(session);
           setUser(session?.user || null);
           setLoading(false);
         });
 
         // Then fetch initial session
+        console.log('[AuthContext] Fetching initial session...');
         const {
           data: { session: initialSession },
         } = await client.auth.getSession();
+        
+        console.log('[AuthContext] Initial session result:', { 
+          hasSession: !!initialSession,
+          userEmail: initialSession?.user?.email || 'none'
+        });
         
         if (initialSession) {
           setSession(initialSession);
@@ -41,7 +52,7 @@ export const AuthProvider = ({ children }) => {
 
         return () => subscription?.unsubscribe();
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('[AuthContext] Error initializing auth:', error);
         setSession(null);
         setUser(null);
         setLoading(false);

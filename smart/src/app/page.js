@@ -13,10 +13,14 @@ export default function Home() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
+    console.log('[Home] Auth state:', { user: !!user, loading, userEmail: user?.email });
+    
     if (!loading) {
       if (user) {
+        console.log('[Home] User authenticated, redirecting to dashboard');
         router.push(ROUTES.DASHBOARD);
       } else {
+        console.log('[Home] No user, redirecting to login');
         router.push(ROUTES.LOGIN);
       }
     }

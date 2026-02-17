@@ -7,13 +7,17 @@ const AUTH_ROUTES = ['/login', '/auth/callback'];
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for public routes
+  console.log(`[Middleware] Processing: ${pathname}`);
+
+  // Skip middleware for public routes and static files
   if (
     pathname === '/' ||
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/public')
+    pathname.startsWith('/public') ||
+    pathname.startsWith('/favicon')
   ) {
+    console.log(`[Middleware] Skipping public route: ${pathname}`);
     return NextResponse.next();
   }
 
@@ -23,39 +27,50 @@ export async function middleware(request) {
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options);
+            });
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
-        },
-      },
+      }
+    );
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    console.log(`[Middleware] Auth check - ${pathname}: user=${!!user}, userEmail=${user?.email || 'none'}`);
+
+    // Protect dashboard routes
+    if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
+      if (!user) {
+        console.log(`[Middleware] ✗ Blocking ${pathname} - user not authenticated, redirecting to /login`);
+        const loginUrl = new URL('/login', request.url);
+        return NextResponse.redirect(loginUrl);
+      } else {
+        console.log(`[Middleware] ✓ Allowing ${pathname} - user authenticated`);
+      }
     }
-  );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Protect dashboard routes
-  if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
-    if (!user) {
-      const loginUrl = new URL('/login', request.url);
-      return NextResponse.redirect(loginUrl);
+    // Redirect authenticated users away from login
+    if (AUTH_ROUTES.includes(pathname) && user) {
+      console.log(`[Middleware] Redirecting authenticated user from ${pathname} to /dashboard`);
+      const dashboardUrl = new URL('/dashboard', request.url);
+      return NextResponse.redirect(dashboardUrl);
     }
-  }
-
-  // Redirect authenticated users away from login
-  if (AUTH_ROUTES.includes(pathname) && user) {
-    const dashboardUrl = new URL('/dashboard', request.url);
-    return NextResponse.redirect(dashboardUrl);
+  } catch (err) {
+    console.error('[Middleware] Error:', err.message);
+    // Continue anyway - might be missing env vars
   }
 
   return response;

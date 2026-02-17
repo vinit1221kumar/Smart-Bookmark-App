@@ -14,7 +14,8 @@ export function getFaviconUrl(url: string): string {
     const domain = extractDomain(url)
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
   } catch {
-    return '/placeholder-icon.png'
+    // Return a data URI for a generic globe icon
+    return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Ccircle cx="32" cy="32" r="30" fill="%23e5e7eb"/%3E%3Cpath d="M32 4a28 28 0 1 0 0 56 28 28 0 0 0 0-56z" fill="none" stroke="%239ca3af" stroke-width="2"/%3E%3C/svg%3E'
   }
 }
 

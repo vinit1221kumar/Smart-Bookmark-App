@@ -53,7 +53,7 @@ export function BookmarkList({ initialBookmarks, userId }: BookmarkListProps) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase, userId])
+  }, [userId])
 
   // Filter bookmarks based on search
   const filteredBookmarks = bookmarks.filter(

@@ -38,7 +38,7 @@ export async function addBookmark(formData: FormData) {
       user_id: user.id,
       title: validation.data.title,
       url: validation.data.url,
-    } as any)
+    })
     .select()
     .single()
 
@@ -86,9 +86,9 @@ export async function incrementOpens(bookmarkId: string) {
   }
 
   // Increment opens counter
-  const { error } = await supabase.rpc('increment_opens' as any, {
+  const { error } = await supabase.rpc('increment_opens', {
     bookmark_id: bookmarkId,
-  } as any)
+  })
 
   if (error) {
     console.error('Error incrementing opens:', error)
